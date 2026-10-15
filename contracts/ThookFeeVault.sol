@@ -14,9 +14,9 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 ///         a report; its hash is stored on-chain with the payout.
 ///
 ///         Roles:
-///         - owner  = the Safe (safe.global). Sets the keeper and limits, pauses,
-///                    and can move funds (rescue). Ownable2Step: the Safe must
-///                    acceptOwnership().
+///         - owner  = the Safe (safe.global). Full control: withdraw ETH or
+///                    tokens at any time, manual airdrops, set keeper/limits,
+///                    pause. Ownable2Step: the Safe must acceptOwnership().
 ///         - keeper = Railway hot wallet. Can ONLY call payEpoch(), which is
 ///                    bounded on-chain: one payout per ended epoch, at most
 ///                    `maxWinners` recipients, at most `maxPayoutBps` of the
@@ -51,7 +51,8 @@ contract ThookFeeVault is Ownable2Step, ReentrancyGuard {
     event KeeperSet(address keeper);
     event LimitsSet(uint256 minHold, uint16 maxWinners, uint16 maxPayoutBps);
     event Paused(bool paused);
-    event Rescued(address indexed to, uint256 amount);
+    event Withdrawn(address indexed to, uint256 amount);
+    event TokenWithdrawn(address indexed token, address indexed to, uint256 amount);
 
     error NotKeeper();
     error IsPaused();
@@ -63,6 +64,7 @@ contract ThookFeeVault is Ownable2Step, ReentrancyGuard {
     error NotEligible(address winner);
     error BadLimits();
     error ZeroAddress();
+    error SendFailed();
 
     constructor(address _owner, address _keeper, IERC20 _thook, uint256 _minHold) Ownable(_owner) {
         if (address(_thook) == address(0)) revert ZeroAddress();
@@ -162,17 +164,41 @@ contract ThookFeeVault is Ownable2Step, ReentrancyGuard {
         emit Paused(_paused);
     }
 
-    /// @notice Owner (Safe) can move ETH out, e.g. to migrate to a new vault.
-    function rescueETH(address payable to, uint256 amount) external onlyOwner nonReentrant {
+    /// @notice Owner (Safe) withdraws ETH from the vault — any amount, any time.
+    function withdraw(address payable to, uint256 amount) public onlyOwner nonReentrant {
         if (to == address(0)) revert ZeroAddress();
         (bool ok,) = to.call{value: amount}("");
-        require(ok, "send failed");
-        emit Rescued(to, amount);
+        if (!ok) revert SendFailed();
+        emit Withdrawn(to, amount);
     }
 
-    /// @notice Recover ERC-20s sent here by mistake.
-    function rescueToken(IERC20 tok, address to, uint256 amount) external onlyOwner {
+    /// @notice Owner (Safe) withdraws the whole ETH balance.
+    function withdrawAll(address payable to) external onlyOwner {
+        withdraw(to, address(this).balance);
+    }
+
+    /// @notice Owner (Safe) withdraws any ERC-20 held by the vault.
+    function withdrawToken(IERC20 tok, address to, uint256 amount) external onlyOwner {
         if (to == address(0)) revert ZeroAddress();
         tok.safeTransfer(to, amount);
+        emit TokenWithdrawn(address(tok), to, amount);
+    }
+
+    /// @notice Owner (Safe) manual airdrop: any recipients, any time, no epoch
+    ///         or holding rules (e.g. a special giveaway or a manual payout).
+    function ownerAirdrop(address[] calldata recipients, uint256[] calldata amounts) external onlyOwner nonReentrant {
+        if (recipients.length != amounts.length) revert BadLength();
+        uint256 paid;
+        for (uint256 i; i < recipients.length; ++i) {
+            (bool ok,) = payable(recipients[i]).call{value: amounts[i], gas: 50_000}("");
+            if (ok) {
+                paid += amounts[i];
+                wonTotal[recipients[i]] += amounts[i];
+                emit Airdrop(type(uint256).max, recipients[i], amounts[i], i + 1);
+            } else {
+                emit AirdropFailed(type(uint256).max, recipients[i], amounts[i]);
+            }
+        }
+        totalPaid += paid;
     }
 }

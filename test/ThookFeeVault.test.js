@@ -75,7 +75,7 @@ describe("ThookFeeVault", () => {
     expect(await vault.totalPaid()).to.equal(e(4));
   });
 
-  it("owner (Safe) controls: pause, keeper, rescue, 2-step ownership", async () => {
+  it("owner (Safe) controls: pause, keeper, withdraw, airdrop, 2-step ownership", async () => {
     await time.increase(WEEK + 1);
     await vault.setPaused(true);
     await expect(vault.connect(keeper).payEpoch(0, [alice.address], [1], ethers.ZeroHash))
@@ -83,8 +83,16 @@ describe("ThookFeeVault", () => {
     await expect(vault.connect(keeper).setPaused(false)).to.be.revertedWithCustomError(vault, "OwnableUnauthorizedAccount");
     await vault.setKeeper(bob.address);
     expect(await vault.keeper()).to.equal(bob.address);
-    await vault.rescueETH(carol.address, e(1));
+    await vault.withdraw(carol.address, e(1));
     expect(await vault.pot()).to.equal(e(9));
+    await expect(vault.connect(keeper).withdraw(keeper.address, 1)).to.be.revertedWithCustomError(vault, "OwnableUnauthorizedAccount");
+    await vault.ownerAirdrop([alice.address, carol.address], [e(1), e(2)]);
+    expect(await vault.totalPaid()).to.equal(e(3));
+    await token.connect(alice).transfer(await vault.getAddress(), e(10));
+    await vault.withdrawToken(await token.getAddress(), bob.address, e(10));
+    expect(await token.balanceOf(bob.address)).to.equal(e(2010));
+    await vault.withdrawAll(carol.address);
+    expect(await vault.pot()).to.equal(0);
     await vault.transferOwnership(carol.address);
     expect(await vault.owner()).to.equal(owner.address);
     await vault.connect(carol).acceptOwnership();
