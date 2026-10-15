@@ -24,7 +24,7 @@ export function WalletButton({ size = "sm", label = "Connect" }: { size?: "sm" |
       {!isConnected ? (
         <motion.button key="c" className={`wbtn wbtn-connect ${size === "lg" ? "wbtn-lg" : ""}`} onClick={() => open({ view: "Connect" })} disabled={busy}
           initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }}>
-          <WcIcon />{busy ? "Connecting…" : label}
+          <WcIcon /><span className="wtxt">{busy ? "Connecting…" : label}</span>
         </motion.button>
       ) : wrong ? (
         <motion.button key="w" className="wbtn wbtn-warn" onClick={() => switchChain({ chainId: robinhood.id })} disabled={switching}

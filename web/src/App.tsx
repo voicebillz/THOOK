@@ -6,6 +6,7 @@ import { Loader } from "./components/Loader";
 import Home from "./pages/Home";
 import Stats from "./pages/Stats";
 import Token from "./pages/Token";
+import Docs from "./pages/Docs";
 
 
 function Page({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,7 @@ function Page({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const loc = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
+  useEffect(() => { if (!loc.hash) window.scrollTo(0, 0); }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
       <a className="skip-link" href="#main">Skip to content</a>
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/" element={<Page><Home /></Page>} />
             <Route path="/stats" element={<Page><Stats /></Page>} />
             <Route path="/thook" element={<Page><Token /></Page>} />
+            <Route path="/docs" element={<Page><Docs /></Page>} />
             <Route path="*" element={<Page><div className="page wrap"><h1 className="page-title">Off the hook.</h1><p className="page-intro">That page doesn't exist.</p></div></Page>} />
           </Routes>
         </AnimatePresence>
