@@ -13,9 +13,14 @@ let tokenCache = { at: 0, data: null };
 /** Fee + airdrop history, indexed incrementally into events.json. */
 async function syncEvents(d) {
   const st = readJson("events.json", { cursor: null, fees: [], airdrops: [] });
-  if (st.vault !== d.vault) { st.cursor = null; st.fees = []; st.airdrops = []; st.vault = d.vault; }
+  if (st.vault !== d.vault) { st.cursor = null; st.fees = []; st.airdrops = []; st.daily = {}; st.vault = d.vault; }
+  st.daily = st.daily || {};
   let from = st.cursor != null ? BigInt(st.cursor) + 1n : BigInt(d.deployBlock ?? 0);
-  const head = await pub.getBlockNumber();
+  const headBlock = await pub.getBlock();
+  const head = headBlock.number;
+  const headTs = Number(headBlock.timestamp);
+  const bps = (await blocksPerDay(Number(head))) / 86_400; // logs carry no timestamp here → estimate
+  const tsOf = (b) => Math.round(headTs - (Number(head) - Number(b)) / bps);
   const step = 50_000n;
   while (from <= head) {
     const to = from + step - 1n > head ? head : from + step - 1n;
@@ -23,8 +28,14 @@ async function syncEvents(d) {
       pub.getLogs({ address: d.vault, event: feeEvent, fromBlock: from, toBlock: to }),
       pub.getLogs({ address: d.vault, event: epochPaidEvent, fromBlock: from, toBlock: to }),
     ]);
-    for (const l of fees) st.fees.push({ b: Number(l.blockNumber), v: l.args.amount.toString() });
-    for (const l of drops) st.airdrops.push({ b: Number(l.blockNumber), tx: l.transactionHash, epoch: Number(l.args.epoch), winner: l.args.winner, amount: l.args.amount.toString(), rank: Number(l.args.rank) });
+    for (const l of fees) {
+      const t = tsOf(l.blockNumber);
+      st.fees.push({ b: Number(l.blockNumber), t, v: l.args.amount.toString() });
+      // Daily totals are kept separately so they survive trimming of the raw list.
+      const day = new Date(t * 1000).toISOString().slice(0, 10);
+      st.daily[day] = (BigInt(st.daily[day] || 0) + l.args.amount).toString();
+    }
+    for (const l of drops) st.airdrops.push({ b: Number(l.blockNumber), t: tsOf(l.blockNumber), tx: l.transactionHash, epoch: Number(l.args.epoch), winner: l.args.winner, amount: l.args.amount.toString(), rank: Number(l.args.rank) });
     st.cursor = to.toString();
     from = to + 1n;
   }
@@ -43,6 +54,20 @@ async function blocksPerDay(head) {
     if (secs > 0) bpdCache = { at: Date.now(), v: Math.round((span / secs) * 86_400) };
   } catch { /* keep estimate */ }
   return bpdCache.v;
+}
+
+/** Daily fee totals from launch (or the first fee) to today, zero-filled. */
+function dailySeries(daily) {
+  const days = Object.keys(daily).sort();
+  if (!days.length) return [];
+  const out = [];
+  const end = new Date().toISOString().slice(0, 10);
+  for (let t = Date.parse(days[0]); ; t += 86_400_000) {
+    const day = new Date(t).toISOString().slice(0, 10);
+    out.push({ day, eth: Number(formatEther(BigInt(daily[day] || 0))) });
+    if (day >= end || out.length > 400) break;
+  }
+  return out;
 }
 
 export async function getStats() {
@@ -70,6 +95,7 @@ export async function getStats() {
     epoch: Number(epoch),
     epochEnd,
     holders: holderCount(),
+    daily: dailySeries(ev.daily || {}),
     winners: [...ev.airdrops].reverse().slice(0, 20).map((a) => ({ ...a, amountEth: Number(formatEther(BigInt(a.amount))) })),
     updatedAt: Date.now(),
   };

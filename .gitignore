@@ -9,3 +9,6 @@ coverage/
 deploy-output.json.bak
 keeper/node_modules/
 keeper/data/
+web/dist/
+server/node_modules/
+web/node_modules/
