@@ -5,7 +5,9 @@
   "type": "module",
   "description": "THOOK API + keeper + Claude prize agent (Railway).",
   "main": "src/index.js",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test test/*.test.js"
@@ -13,6 +15,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",
     "express": "^4.21.2",
+    "pg": "^8.23.1",
     "viem": "^2.21.0",
     "zod": "^3.23.8"
   }

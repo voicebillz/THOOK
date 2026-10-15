@@ -4,6 +4,7 @@
 import express from "express";
 import { formatEther, getAddress, isAddress } from "viem";
 import { env, deployment, saveDeployment, readJson, POOL_MANAGER } from "./config.js";
+import { initStore, flushStore, storeKind, keys, deleteKey } from "./store.js";
 import { pub, keeperAccount, vaultAbi, seederAbi, hookAbi } from "./chain.js";
 import { requireAdmin } from "./auth.js";
 import { syncHolders, holderState } from "./holders.js";
@@ -30,7 +31,7 @@ const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((err) => 
 const runs = { lastTick: null, lastSnapshot: null, lastSettle: null, lastError: null };
 
 // ------------------------------------------------------------------ public
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (_req, res) => res.json({ ok: true, store: storeKind() }));
 
 app.get("/api/config", (_req, res) => {
   const d = deployment();
@@ -65,7 +66,7 @@ app.get("/api/reports/:epoch", (req, res) => {
 // ------------------------------------------------------------------- admin
 app.get("/api/admin/status", requireAdmin("session"), wrap(async (_req, res) => {
   const d = deployment();
-  const out = { deployment: d, runs, keeper: keeperAccount?.address || null, keeperEnabled: env.KEEPER_ENABLED };
+  const out = { store: storeKind(), deployment: d, runs, keeper: keeperAccount?.address || null, keeperEnabled: env.KEEPER_ENABLED };
   if (keeperAccount) out.keeperBalanceEth = Number(formatEther(await pub.getBalance({ address: keeperAccount.address })));
   if (d.vault) {
     const r = (fn) => pub.readContract({ address: d.vault, abi: vaultAbi, functionName: fn }).catch(() => null);
@@ -135,6 +136,11 @@ async function tick() {
   const clock = await epochClock();
   const snap = await takeSnapshot();
   if (snap) runs.lastSnapshot = Date.now();
+  // Snapshots are only needed until their week is settled: keep the last 3 weeks.
+  if (clock) for (const k of keys("snap/")) {
+    const m = /^snap\/e(\d+)-d\d+\.json$/.exec(k);
+    if (m && Number(m[1]) < clock.epoch - 3) deleteKey(k);
+  }
   // Settle every ended, unpaid epoch that has its end snapshot.
   if (env.KEEPER_ENABLED && clock && clock.epoch > 0) {
     for (let e = Math.max(0, clock.epoch - 4); e < clock.epoch; e++) {
@@ -156,7 +162,12 @@ async function loop() {
   setTimeout(loop, 10 * 60_000);
 }
 
-app.listen(env.PORT, () => {
-  console.log(`THOOK server on :${env.PORT} — admin ${env.ADMIN_WALLET || "(unset)"} keeper ${keeperAccount?.address || "(unset)"} payouts ${env.KEEPER_ENABLED ? "ON" : "OFF"}`);
+await initStore();
+app.listen(env.PORT, "0.0.0.0", () => {
+  console.log(`THOOK server on :${env.PORT} — store ${storeKind()} · admin ${env.ADMIN_WALLET || "(unset)"} · keeper ${keeperAccount?.address || "(unset)"} · payouts ${env.KEEPER_ENABLED ? "ON" : "OFF"}`);
   setTimeout(loop, 5_000);
 });
+
+for (const sig of ["SIGTERM", "SIGINT"]) {
+  process.on(sig, () => { flushStore().finally(() => process.exit(0)); });
+}

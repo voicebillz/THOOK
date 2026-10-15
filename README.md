@@ -55,9 +55,9 @@ Prices: GeckoTerminal (Robinhood network). Balances: Blockscout API, with an on-
 
 1. **Reown (WalletConnect):** create a project at cloud.reown.com, add `thook.vip` to the allowed domains.
 2. **Railway** (service root = `server/`):
-   - Add a **Volume** mounted at `/data`.
+   - Add the **Postgres** plugin; on the THOOK service add `DATABASE_URL=${{Postgres.DATABASE_URL}}`.
    - Variables (see `server/.env.example`): `ADMIN_WALLET` (your wallet), `KEEPER_KEY` (new hot wallet, fund ~0.01 ETH
-     for gas), `ANTHROPIC_API_KEY`, `DATA_DIR=/data`, `CORS_ORIGIN=https://thook.vip`, `KEEPER_ENABLED=false`.
+     for gas), `ANTHROPIC_API_KEY`, `CORS_ORIGIN=https://thook.vip`, `KEEPER_ENABLED=false`.
 3. **Vercel** (root = `web/`): `VITE_API_URL=<railway url>`, `VITE_WALLETCONNECT_PROJECT_ID`, `VITE_SITE_URL=https://thook.vip`.
    Point `thook.vip` at Vercel.
 4. Open **thook.vip/admin**, connect your admin wallet, sign in (free signature), then run the 9 launch steps

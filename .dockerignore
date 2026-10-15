@@ -1,0 +1,8 @@
+**/node_modules
+web
+contracts
+artifacts
+cache
+test
+brand
+.git

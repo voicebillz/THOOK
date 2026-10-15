@@ -1,14 +1,11 @@
 // Runtime config: env vars (Railway) + a small JSON store on the volume.
 // Contract addresses are written by the admin portal after the on-chain deploy
 // (POST /api/admin/config, signed by ADMIN_WALLET) and can be pinned by env.
-import fs from "node:fs";
-import path from "node:path";
 import { defineChain, getAddress, isAddress } from "viem";
 
 export const env = {
   PORT: Number(process.env.PORT || 8080),
   RPC_URL: process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
-  DATA_DIR: process.env.DATA_DIR || path.resolve("data"),
   ADMIN_WALLET: (process.env.ADMIN_WALLET || "").toLowerCase(),
   KEEPER_KEY: process.env.KEEPER_KEY || "",
   KEEPER_ENABLED: process.env.KEEPER_ENABLED === "true",
@@ -35,23 +32,8 @@ export const robinhood = defineChain({
   contracts: { multicall3: { address: "0xcA11bde05977b3631167028862bE2a173976CA11" } },
 });
 
-fs.mkdirSync(env.DATA_DIR, { recursive: true });
-
-export function readJson(name, fallback) {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(env.DATA_DIR, name), "utf8"));
-  } catch {
-    return fallback;
-  }
-}
-
-export function writeJson(name, value) {
-  const file = path.join(env.DATA_DIR, name);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = file + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(value, (_, v) => (typeof v === "bigint" ? v.toString() : v), 2));
-  fs.renameSync(tmp, file);
-}
+import { readJson, writeJson } from "./store.js";
+export { readJson, writeJson };
 
 const ADDR_KEYS = ["token", "vault", "seeder", "hook", "hookDeployer", "safe"];
 
