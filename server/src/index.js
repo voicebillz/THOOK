@@ -3,9 +3,9 @@
 // Claude-audited "top loser" airdrop from ThookFeeVault).
 import express from "express";
 import { formatEther, getAddress, isAddress } from "viem";
-import { env, deployment, saveDeployment, readJson, POOL_MANAGER } from "./config.js";
+import { env, deployment, saveDeployment, readJson, writeJson, POOL_MANAGER } from "./config.js";
 import { initStore, flushStore, storeKind, keys, deleteKey } from "./store.js";
-import { pub, keeperAccount, vaultAbi, seederAbi, hookAbi } from "./chain.js";
+import { pub, keeperAccount, keeperWallet, vaultAbi, seederAbi, hookAbi } from "./chain.js";
 import { requireAdmin } from "./auth.js";
 import { syncHolders, holderState } from "./holders.js";
 import { takeSnapshot, epochClock } from "./snapshots.js";
@@ -108,6 +108,21 @@ app.post("/api/admin/launch", requireAdmin(), wrap(async (req, res) => {
 
 app.post("/api/admin/verify", requireAdmin(), wrap(async (_req, res) => res.json({ results: await verifyAll() })));
 
+// Ownership proof for Dexscreener / GeckoTerminal / CoinGecko: they trust the
+// token's DEPLOYER address, which is the keeper. Signs a plain-text message
+// (EIP-191 personal_sign — can never authorize a transaction or a permit).
+app.post("/api/admin/sign", requireAdmin(), wrap(async (req, res) => {
+  const message = String(req.body?.message || "");
+  if (!message.trim() || message.length > 4000) return res.status(400).json({ error: "message must be 1–4000 characters of text" });
+  if (/^0x[0-9a-fA-F]{64}$/.test(message.trim())) return res.status(400).json({ error: "refusing to sign a raw 32-byte hash — paste the full text message" });
+  if (!keeperWallet) return res.status(503).json({ error: "KEEPER_KEY not set" });
+  const signature = await keeperWallet.signMessage({ message });
+  const log = readJson("signatures.json", []);
+  log.push({ at: Date.now(), message: message.slice(0, 500), signature });
+  writeJson("signatures.json", log.slice(-50));
+  res.json({ address: keeperAccount.address, message, signature });
+}));
+
 // The portal posts the addresses it just deployed; the server checks they are
 // wired together on-chain before saving.
 app.post("/api/admin/config", requireAdmin(), wrap(async (req, res) => {
@@ -159,6 +174,12 @@ async function tick() {
   const d = deployment();
   if (!d.vault || !d.token) return;
   await syncHolders();
+  // Keep publishing sources until every contract is verified (Sourcify + Blockscout).
+  const ver = lastVerify();
+  const allDone = ver?.results?.length && ver.results.every((r) => r.status === "verified" || r.status === "not deployed");
+  if (d.poolId && !allDone && (runs.verifyTries = (runs.verifyTries || 0) + 1) <= 36) {
+    await verifyAll().catch((err) => console.warn("[verify]", err.message));
+  }
   const clock = await epochClock();
   const snap = await takeSnapshot();
   if (snap) runs.lastSnapshot = Date.now();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminCall } from "../lib/api";
 import { explorer, short } from "../lib/format";
+import OwnershipCard from "./OwnershipCard";
 
 type Check = { ok: boolean; label: string; value: string };
 type Step = { id: string; title: string; detail: string };
@@ -98,7 +99,7 @@ export default function LaunchPanel({ onChange }: { onChange: () => void }) {
 
       <div className="card">
         <h3>Explorer verification</h3>
-        <p className="sub">Publishes the source code on Blockscout — screeners need this for "verified / open source".</p>
+        <p className="sub">Runs automatically right after launch and retries every 10 minutes until all five are verified (Sourcify + Blockscout).</p>
         {d.verify?.results?.length ? (
           <table className="ptable" style={{ marginBottom: 12 }}>
             <tbody>
@@ -116,6 +117,8 @@ export default function LaunchPanel({ onChange }: { onChange: () => void }) {
       </div>
 
       {err && <div className="note note-danger">{err}</div>}
+
+      <OwnershipCard deployer={d.checks.find((c) => c.label.startsWith("KEEPER_KEY"))?.value?.startsWith("0x") ? d.checks.find((c) => c.label.startsWith("KEEPER_KEY"))!.value : null} token={s.token?.address} />
 
       {d.state.log.length > 0 && (
         <div className="card">
