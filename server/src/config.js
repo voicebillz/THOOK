@@ -3,10 +3,18 @@
 // (POST /api/admin/config, signed by ADMIN_WALLET) and can be pinned by env.
 import { defineChain, getAddress, isAddress } from "viem";
 
+/** Accepts an address pasted with stray quotes/spaces; warns when invalid. */
+function cleanAddress(raw, name) {
+  const v = String(raw || "").trim().replace(/^["']|["']$/g, "").trim();
+  if (!v) return "";
+  if (!isAddress(v)) { console.warn(`[config] ${name} is not a valid 0x address: "${v}"`); return ""; }
+  return v.toLowerCase();
+}
+
 export const env = {
   PORT: Number(process.env.PORT || 8080),
   RPC_URL: process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
-  ADMIN_WALLET: (process.env.ADMIN_WALLET || "").toLowerCase(),
+  ADMIN_WALLET: cleanAddress(process.env.ADMIN_WALLET, "ADMIN_WALLET"),
   KEEPER_KEY: process.env.KEEPER_KEY || "",
   KEEPER_ENABLED: process.env.KEEPER_ENABLED === "true",
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL || "claude-opus-5-5",
