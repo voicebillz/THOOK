@@ -19,7 +19,12 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1); // Railway edge → real client IP for rate limits
 app.use(express.json({ limit: "100kb" }));
 app.use((req, res, next) => {
-  res.set("Access-Control-Allow-Origin", env.CORS_ORIGIN);
+  // CORS: CORS_ORIGIN may list several origins (comma separated); thook.vip
+  // and www.thook.vip are always allowed so a www visit never breaks the site.
+  const origin = req.get("origin");
+  const allowed = new Set([...env.CORS_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean), "https://thook.vip", "https://www.thook.vip"]);
+  if (allowed.has("*")) res.set("Access-Control-Allow-Origin", "*");
+  else if (origin && allowed.has(origin)) { res.set("Access-Control-Allow-Origin", origin); res.set("Vary", "Origin"); }
   res.set("Access-Control-Allow-Headers", "content-type, x-admin-message, x-admin-signature");
   res.set("X-Content-Type-Options", "nosniff");
   res.set("X-Frame-Options", "DENY");

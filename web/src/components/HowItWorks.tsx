@@ -8,6 +8,11 @@ import { LogoTile } from "./Logo";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
+/** Real brand marks, served from /logos. */
+const Logo = ({ src, alt, size = 18, round = true }: { src: string; alt: string; size?: number; round?: boolean }) => (
+  <img src={`/logos/${src}`} alt={alt} width={size} height={size} className="v-logo" style={{ borderRadius: round ? "50%" : 4 }} loading="lazy" />
+);
+
 const STEPS = [
   { n: "01", t: "Trade $THOOK", p: "Buy or sell in the Uniswap v4 pool on Robinhood Chain. The liquidity is locked forever.", k: "Locked LP · 1B supply" },
   { n: "02", t: "The hook takes 4%", p: "Every buy and sell pays 4% in ETH, never in THOOK, straight into the fee vault.", k: "Paid in ETH · no sell pressure" },
@@ -72,14 +77,14 @@ function SwapVisual() {
   const rows = flip ? [["You sell", "2,410,000", "THOOK"], ["You get", "0.96", "ETH"]] : [["You pay", "1.00", "ETH"], ["You get", "2,410,000", "THOOK"]];
   return (
     <div className="v-swap">
-      <div className="v-top"><span className="dk">Swap</span><span className="chip-green">Uniswap v4</span></div>
+      <div className="v-top"><span className="dk">Swap</span><span className="v-brand"><Logo src="uniswap.png" alt="Uniswap" />Uniswap v4</span></div>
       {rows.map(([l, v, u], i) => (
         <div className="v-row" key={i}>
           <span className="v-l">{l}</span>
           <AnimatePresence mode="popLayout">
             <motion.span key={v + u} className="v-amt" initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -14, opacity: 0 }} transition={{ duration: 0.4, ease }}>{v}</motion.span>
           </AnimatePresence>
-          <span className="v-unit">{u === "THOOK" ? <span className="v-tok"><LogoTile /></span> : <span className="v-eth">Ξ</span>}{u}</span>
+          <span className="v-unit">{u === "THOOK" ? <span className="v-tok"><LogoTile /></span> : <span className="v-tok"><Logo src="eth.png" alt="ETH" size={20} /></span>}{u}</span>
         </div>
       ))}
       <motion.div className="v-swapbtn" animate={{ rotate: flip ? 180 : 0 }} transition={{ type: "spring", stiffness: 200, damping: 16 }}>↓</motion.div>
@@ -87,7 +92,7 @@ function SwapVisual() {
         <motion.path d="M0 40 L20 36 L40 38 L60 30 L80 32 L100 22 L120 26 L140 16 L160 18 L180 8 L200 10" fill="none" stroke="var(--lime)" strokeWidth="2"
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.6, ease }} />
       </svg>
-      <div className="v-foot"><span>Robinhood Chain</span><span>LP locked forever</span></div>
+      <div className="v-foot"><span className="v-chain"><Logo src="robinhood.svg" alt="Robinhood" size={14} round={false} />Robinhood Chain</span><span>LP locked forever</span></div>
     </div>
   );
 }
@@ -99,7 +104,7 @@ function HookVisual() {
   useEffect(() => { if (reduce) return; const t = setInterval(() => setVault((v) => v + 0.04), 900); return () => clearInterval(t); }, [reduce]);
   return (
     <div className="v-hook">
-      <div className="v-top"><span className="dk">Every swap</span><span className="chip-green">4% → vault</span></div>
+      <div className="v-top"><span className="dk">Every swap</span><span className="v-brand"><Logo src="eth.png" alt="ETH" />Paid in ETH</span></div>
       <div className="v-big">4<span>%</span></div>
       <div className="v-split">
         <motion.i className="a" initial={{ width: 0 }} animate={{ width: "96%" }} transition={{ duration: 1, ease }} />
@@ -110,13 +115,13 @@ function HookVisual() {
         {[0, 1, 2, 3].map((i) => (
           <motion.span key={i} className="v-coin" initial={{ y: -10, opacity: 0 }}
             animate={reduce ? { opacity: 1 } : { y: [ -10, 56 ], opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 1.8, delay: i * 0.45, repeat: Infinity, ease: "easeIn" }}>Ξ</motion.span>
+            transition={{ duration: 1.8, delay: i * 0.45, repeat: Infinity, ease: "easeIn" }}><Logo src="eth.png" alt="" size={18} /></motion.span>
         ))}
       </div>
       <div className="v-vault">
         <span className="v-vault-ico"><LogoTile /></span>
         <div><div className="dk">Fee vault</div><div className="v-vault-n">+{vault.toFixed(2)} ETH</div></div>
-        <span className="v-lock">Safe-owned</span>
+        <span className="v-lock"><Logo src="safe.png" alt="Safe" size={16} />Safe-owned</span>
       </div>
     </div>
   );
@@ -133,7 +138,7 @@ function LoserVisual() {
   const rows = sorted ? LOSERS : [LOSERS[2], LOSERS[0], LOSERS[3], LOSERS[1]];
   return (
     <div className="v-loser">
-      <div className="v-top"><span className="dk">This week's biggest losers</span><span className="chip-green">7d</span></div>
+      <div className="v-top"><span className="dk">This week's biggest losers</span><span className="v-brand"><Logo src="claude.svg" alt="Claude" size={14} round={false} />Audited by Claude</span></div>
       <div className="v-list">
         {rows.map((r, i) => (
           <motion.div layout key={r.a} className={`v-lrow${sorted && i === 0 ? " win" : ""}`} transition={{ type: "spring", stiffness: 260, damping: 26 }}>
@@ -147,7 +152,7 @@ function LoserVisual() {
       <AnimatePresence>
         {sorted && (
           <motion.div className="v-prize" initial={{ opacity: 0, y: 10, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 0.5, ease }}>
-            <span className="tag tag-green">Winner</span><span className="grow">0x9a1f…2233 takes the pot</span><span className="chip-green">+3.41 ETH</span>
+            <span className="tag tag-green">Winner</span><span className="grow">0x9a1f…2233 takes the pot</span><span className="chip-green v-eth-chip"><Logo src="eth.png" alt="" size={14} />+3.41 ETH</span>
           </motion.div>
         )}
       </AnimatePresence>

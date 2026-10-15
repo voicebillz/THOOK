@@ -35,7 +35,7 @@ export default function Home() {
   const ctaRot = useTransform(ctaP, [0, 1], [-18, 12]);
   const ctaScale = useTransform(ctaP, [0, 1], [0.8, 1.1]);
 
-  const { data: s } = useStats();
+  const { data: s, isError: statsErr } = useStats();
   const { data: t } = useToken();
   const live = !!s?.live;
   const usd = (eth: number) => (s?.ethUsd ? eth * s.ethUsd : null);
@@ -92,6 +92,7 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {statsErr && !s && <div className="note note-danger" style={{ marginTop: 16 }}>Can't reach the THOOK server right now — retrying.</div>}
         <motion.div className="home-tag" style={reduce ? undefined : { opacity: sFade }} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.5, ease }}>
           <h1>Every trade pays the biggest loser.</h1>
           <div className="live"><span className="live-dot" style={{ marginRight: 0 }} />Live on Robinhood Chain</div>

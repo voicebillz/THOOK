@@ -49,14 +49,3 @@ export function Header() {
     </header>
   );
 }
-
-export function Footer() {
-  return (
-    <footer className="footer">
-      <div className="wrap footer-in">
-        <span>$THOOK · Tax Hook · Robinhood Chain</span>
-        <span className="mono">4% ETH tax → weekly top-loser airdrop</span>
-      </div>
-    </footer>
-  );
-}

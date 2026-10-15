@@ -7,7 +7,7 @@ import { explorer, fmtNum, fmtUsd, short } from "../lib/format";
 import { buyUrl, dexscreener, gecko } from "../lib/links";
 
 export default function Token() {
-  const { data: t } = useToken();
+  const { data: t, isError } = useToken();
   const [copied, setCopied] = useState(false);
   const live = t?.live;
   const copy = async () => {
@@ -29,6 +29,7 @@ export default function Token() {
         </Reveal>
         <Reveal delay={0.08}><p className="page-intro">A 1B-supply token on Robinhood Chain whose 4% swap tax is paid back, in ETH, to the week's biggest loser.</p></Reveal>
 
+        {isError && !t && <div className="note note-danger" style={{ marginBottom: 16 }}>Can't reach the THOOK server right now — retrying.</div>}
         <Reveal delay={0.12}>
           <div className="ca">
             <span className="eyebrow">CA</span>

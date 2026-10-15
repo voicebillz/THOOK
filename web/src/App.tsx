@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Header, Footer } from "./components/Header";
+import { Header } from "./components/Header";
 import { Loader } from "./components/Loader";
 import Home from "./pages/Home";
 import Stats from "./pages/Stats";
@@ -35,7 +35,6 @@ export default function App() {
           </Routes>
         </AnimatePresence>
       </main>
-      <Footer />
     </>
   );
 }
