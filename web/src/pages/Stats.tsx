@@ -79,16 +79,16 @@ export default function Stats() {
         <Reveal>
           <div style={{ overflowX: "auto" }}>
             <table className="ptable">
-              <thead><tr><th>Winner</th><th>Week</th><th>Rank</th><th>Airdrop</th><th>USD now</th><th>Tx</th></tr></thead>
+              <thead><tr><th>Winner</th><th>Week</th><th className="hide-sm">Rank</th><th>Airdrop</th><th className="hide-sm">USD now</th><th>Tx</th></tr></thead>
               <tbody>
-                {!s && [0, 1, 2].map((i) => <tr key={i}>{[14, 4, 3, 10, 8, 8].map((w, j) => <td key={j}><Sk w={`${w}ch`} /></td>)}</tr>)}
+                {!s && [0, 1, 2].map((i) => <tr key={i}>{[14, 4, 3, 10, 8, 8].map((w, j) => <td key={j} className={j === 2 || j === 4 ? "hide-sm" : undefined}><Sk w={`${w}ch`} /></td>)}</tr>)}
                 {live && s!.winners.map((w) => (
                   <tr key={w.tx + w.winner}>
                     <td><a className="who" href={explorer("address", w.winner)} target="_blank" rel="noreferrer"><span className="ava" style={{ background: ava(w.winner) }} />{short(w.winner)}</a></td>
                     <td>{w.epoch > 1e9 ? "Bonus" : w.epoch + 1}</td>
-                    <td>#{w.rank}</td>
+                    <td className="hide-sm">#{w.rank}</td>
                     <td><b>{fmtEth(w.amountEth)} ETH</b></td>
-                    <td className="muted">{fmtUsd(usd(w.amountEth))}</td>
+                    <td className="muted hide-sm">{fmtUsd(usd(w.amountEth))}</td>
                     <td><a className="muted mono" href={explorer("tx", w.tx)} target="_blank" rel="noreferrer">{short(w.tx)} ↗</a></td>
                   </tr>
                 ))}
@@ -127,7 +127,7 @@ export default function Stats() {
                 {epochs.data!.slice(0, 8).map((e) => (
                   <tr key={e.epoch}>
                     <td style={{ width: 70 }}><span className="tag tag-green">Week {e.epoch + 1}</span></td>
-                    <td style={{ textAlign: "left", color: "var(--ink-2)" }}>{e.summary || "Report published."}</td>
+                    <td className="wrap" style={{ textAlign: "left", color: "var(--ink-2)" }}>{e.summary || "Report published."}</td>
                     <td className="mono muted" style={{ fontSize: 11 }}>{e.hash ? short(e.hash) : ""}</td>
                   </tr>
                 ))}

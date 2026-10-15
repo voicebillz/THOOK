@@ -54,7 +54,7 @@ export default function Home() {
         >
           <div className="dcard-top">
             <div className="dcard-brand"><span className="brand-mark"><LogoTile /></span>$THOOK</div>
-            <a className="pill" href={buyUrl(t?.address)} target="_blank" rel="noreferrer">Buy</a>
+            <a className="pill blink" href={buyUrl(t?.address)} target="_blank" rel="noreferrer"><img src="/logos/uniswap.png" alt="" width={14} height={14} />Buy</a>
           </div>
 
           <div className="dcard-hero">
@@ -106,7 +106,7 @@ export default function Home() {
           <h2 className="display"><Words text="Get hooked." italic={["hooked."]} /></h2>
           <Reveal delay={0.2}>
             <div className="hero-cta">
-              <a className="btn btn-lime btn-lg" href={buyUrl(t?.address)} target="_blank" rel="noreferrer">Buy $THOOK</a>
+              <a className="btn btn-lime btn-lg blink" href={buyUrl(t?.address)} target="_blank" rel="noreferrer"><img src="/logos/uniswap.png" alt="" width={20} height={20} />Buy $THOOK</a>
               <Link className="btn btn-lg" to="/stats">Statistics</Link>
             </div>
           </Reveal>

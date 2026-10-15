@@ -5,6 +5,7 @@ import { Sk } from "../components/Skeleton";
 import { useToken } from "../lib/api";
 import { explorer, fmtNum, fmtUsd, short } from "../lib/format";
 import { buyUrl, dexscreener, gecko, X_URL } from "../lib/links";
+import { BrandLink } from "../components/BrandLink";
 
 export default function Token() {
   const { data: t, isError } = useToken();
@@ -68,11 +69,11 @@ export default function Token() {
         {live && (
           <Reveal>
             <div className="links">
-              <a className="btn btn-lime" href={buyUrl(t!.address)} target="_blank" rel="noreferrer">Buy $THOOK</a>
-              <a className="btn" href={gecko(t!.address)} target="_blank" rel="noreferrer">GeckoTerminal</a>
-              <a className="btn" href={dexscreener(t!.address)} target="_blank" rel="noreferrer">Dexscreener</a>
-              <a className="btn" href={X_URL} target="_blank" rel="noreferrer">X · @usetaxtech</a>
-              <a className="btn" href={explorer("token", t!.address)} target="_blank" rel="noreferrer">Explorer</a>
+              <BrandLink brand="uniswap" href={buyUrl(t!.address)} primary>Buy $THOOK</BrandLink>
+              <BrandLink brand="dexscreener" href={dexscreener(t!.address)}>Dexscreener</BrandLink>
+              <BrandLink brand="geckoterminal" href={gecko(t!.address)}>GeckoTerminal</BrandLink>
+              <BrandLink brand="x" href={X_URL}>@usetaxtech</BrandLink>
+              <BrandLink brand="explorer" href={explorer("token", t!.address)}>Explorer</BrandLink>
             </div>
             <dl className="kv" style={{ marginTop: 28 }}>
               {t!.vault && <><dt>Fee vault</dt><dd><a href={explorer("address", t!.vault)} target="_blank" rel="noreferrer">{short(t!.vault)}</a></dd></>}

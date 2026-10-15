@@ -70,7 +70,7 @@ export function HowItWorks() {
 }
 
 /* ---------- 01 · swap card ---------- */
-function SwapVisual() {
+export function SwapVisual() {
   const reduce = useReducedMotion();
   const [flip, setFlip] = useState(false);
   useEffect(() => { if (reduce) return; const t = setInterval(() => setFlip((f) => !f), 2600); return () => clearInterval(t); }, [reduce]);
@@ -98,7 +98,7 @@ function SwapVisual() {
 }
 
 /* ---------- 02 · the 4% hook ---------- */
-function HookVisual() {
+export function HookVisual() {
   const reduce = useReducedMotion();
   const [vault, setVault] = useState(0);
   useEffect(() => { if (reduce) return; const t = setInterval(() => setVault((v) => v + 0.04), 900); return () => clearInterval(t); }, [reduce]);
@@ -131,14 +131,14 @@ function HookVisual() {
 const LOSERS = [
   { a: "0x9a1f…2233", l: 41210 }, { a: "0x77c0…a91e", l: 18904 }, { a: "0x3be2…0c44", l: 9032 }, { a: "0xe190…77b1", l: 4410 },
 ];
-function LoserVisual() {
+export function LoserVisual() {
   const reduce = useReducedMotion();
   const [sorted, setSorted] = useState(reduce);
   useEffect(() => { if (reduce) return; const t = setTimeout(() => setSorted(true), 700); return () => clearTimeout(t); }, [reduce]);
   const rows = sorted ? LOSERS : [LOSERS[2], LOSERS[0], LOSERS[3], LOSERS[1]];
   return (
     <div className="v-loser">
-      <div className="v-top"><span className="dk">This week's biggest losers</span><span className="v-brand"><Logo src="claude.svg" alt="Claude" size={14} round={false} />Audited by Claude</span></div>
+      <div className="v-top"><span className="dk">Biggest losers · 7d</span><span className="v-brand"><Logo src="claude.svg" alt="Claude" size={14} round={false} />Audited by Claude</span></div>
       <div className="v-list">
         {rows.map((r, i) => (
           <motion.div layout key={r.a} className={`v-lrow${sorted && i === 0 ? " win" : ""}`} transition={{ type: "spring", stiffness: 260, damping: 26 }}>
@@ -152,7 +152,7 @@ function LoserVisual() {
       <AnimatePresence>
         {sorted && (
           <motion.div className="v-prize" initial={{ opacity: 0, y: 10, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 0.5, ease }}>
-            <span className="tag tag-green">Winner</span><span className="grow">0x9a1f…2233 takes the pot</span><span className="chip-green v-eth-chip"><Logo src="eth.png" alt="" size={14} />+3.41 ETH</span>
+            <span className="tag tag-green">Winner</span><span className="grow">0x9a1f…2233 wins</span><span className="chip-green v-eth-chip"><Logo src="eth.png" alt="" size={14} />+3.41 ETH</span>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,6 +3,9 @@ import { Reveal } from "../components/Reveal";
 import { useConfig } from "../lib/api";
 import { explorer, short } from "../lib/format";
 import { buyUrl, dexscreener, gecko, X_URL } from "../lib/links";
+import { BrandLink } from "../components/BrandLink";
+import { FlowDiagram, WeekTimeline, MinBalanceChart, SupplyRing, ContractMap, CheckList } from "../components/DocsVisuals";
+import { HookVisual, LoserVisual } from "../components/HowItWorks";
 
 const SECTIONS = [
   ["overview", "Overview"],
@@ -20,13 +23,20 @@ export default function Docs() {
   const [active, setActive] = useState<string>("overview");
 
   useEffect(() => {
-    const els = SECTIONS.map(([id]) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
-    const io = new IntersectionObserver((entries) => {
-      const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-      if (vis[0]) setActive(vis[0].target.id);
-    }, { rootMargin: "-20% 0px -65% 0px" });
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    const onScroll = () => {
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if (atBottom) { setActive(SECTIONS[SECTIONS.length - 1][0]); return; }
+      let cur: string = SECTIONS[0][0];
+      for (const [id] of SECTIONS) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= window.innerHeight * 0.3) cur = id;
+      }
+      setActive(cur);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
   }, []);
 
   const addr = (label: string, a?: string | null, note?: string) => (
@@ -56,76 +66,82 @@ export default function Docs() {
         <article className="dc-body">
           <Reveal><div className="eyebrow">Docs</div></Reveal>
           <Reveal delay={0.05}><h1 className="page-title">How $THOOK works.</h1></Reveal>
-          <Reveal delay={0.1}><p className="page-intro">Everything about the tax, the weekly prize and the contracts, in one place.</p></Reveal>
+          <Reveal delay={0.1}><p className="page-intro">The tax, the weekly prize and the contracts, explained simply.</p></Reveal>
 
           <section id="overview">
             <h2>Overview</h2>
-            <p><b>$THOOK (Tax Hook)</b> is a token on Robinhood Chain that trades in a Uniswap v4 pool. Every buy and sell pays a <b>4% tax in ETH</b>. Each week, the whole pot goes to the holder whose <b>entire portfolio lost the most</b>, and it is airdropped in ETH with nothing to claim.</p>
+            <p><b>$THOOK</b> is a token on Robinhood Chain. Every trade pays a <b>4% tax in ETH</b>. Once a week, all of it goes to the holder whose <b>whole portfolio lost the most</b>.</p>
+            <FlowDiagram />
             <div className="dc-cards">
-              <div><b>4%</b><span>tax on every buy & sell, paid in ETH</span></div>
+              <div><b>4%</b><span>tax on every buy & sell</span></div>
               <div><b>7 days</b><span>between airdrops</span></div>
-              <div><b>100%</b><span>of liquidity locked forever</span></div>
+              <div><b>0 clicks</b><span>the winner just receives ETH</span></div>
             </div>
           </section>
 
           <section id="tax">
             <h2>The 4% tax</h2>
-            <p>The tax is collected by a <b>Uniswap v4 hook</b>, a small contract the pool calls on every swap. The token itself has no tax code.</p>
-            <ul>
-              <li><b>Always in ETH, never in THOOK.</b> On a buy the hook takes 4% of the ETH you pay. On a sell it takes 4% of the ETH you receive. The hook never sells THOOK, so the tax creates no sell pressure.</li>
-              <li><b>Straight to the vault.</b> The ETH moves into the fee vault in the same transaction as the trade. Nobody has to claim or forward it.</li>
-              <li><b>Fixed forever.</b> The rate is a constant in an ownerless contract and can never be raised or lowered.</li>
-              <li><b>No extra pool fee.</b> The pool's own LP fee is 0%, so 4% is the full cost of a trade.</li>
-            </ul>
-            <p className="dc-note">Some token scanners read only the token contract and show "0% tax". The real 4% lives in the pool hook.</p>
+            <div className="dc-split">
+              <ul className="dc-points">
+                <li><b>Paid in ETH, never in THOOK.</b> The tax never sells your token.</li>
+                <li><b>Instant.</b> It lands in the fee vault in the same transaction as the trade.</li>
+                <li><b>Fixed forever.</b> Nobody can raise or lower it.</li>
+                <li><b>No extra pool fee.</b> 4% is the full cost of a trade.</li>
+              </ul>
+              <div className="dc-vis"><HookVisual /></div>
+            </div>
+            <p className="dc-note">Some scanners only read the token contract and show "0% tax". The real 4% is collected by the pool's hook.</p>
           </section>
 
           <section id="prize">
             <h2>The weekly prize</h2>
-            <p>Every 7 days (the week rolls over each <b>Thursday at 18:27 UTC</b>), the pot is airdropped in ETH to the biggest loser.</p>
-            <h3>Who qualifies</h3>
-            <ul>
-              <li>You hold at least <b>{minHold} THOOK</b> in every daily check of the week, and still hold it at payout.</li>
-              <li>Pools, routers, exchanges, the team wallets and the protocol contracts can never win.</li>
-            </ul>
-            <h3>How the loss is measured</h3>
-            <p>Your <b>whole Robinhood Chain portfolio</b> counts: ETH and every token with a market price, not just THOOK.</p>
-            <div className="dc-formula">loss = Σ<sub>assets</sub> held × (price at week start − price at week end)</div>
-            <ul>
-              <li><b>held</b> is the <i>lowest</i> balance seen in the daily snapshots. Selling, sending tokens away or buying late never creates a "loss", so the prize can't be gamed by moving funds.</li>
-              <li>Gains offset losses. The biggest net USD loss wins.</li>
-            </ul>
-            <h3>Claude audits every payout</h3>
-            <p>After the ranking, a Claude AI agent reviews the top candidates and removes non-human or abusive wallets, such as pools, exchanges or farming setups. It always gives a written reason. It can't pick a winner itself or change the order.</p>
-            <h3>Transparent by design</h3>
-            <p>The full report for each week is published, and its fingerprint (hash) is stored on-chain with the payout. Winners appear on the <a href="/stats">Statistics</a> page.</p>
+            <p>A new week starts every <b>Thursday at 18:27 UTC</b>. Your portfolio is checked once a day, and at the end of the week the pot is paid out.</p>
+            <WeekTimeline />
+            <h3>1 · Qualify</h3>
+            <p>Hold at least <b>{minHold} THOOK</b> in every daily check, and still hold it at payout.</p>
+            <h3>2 · Your whole portfolio counts</h3>
+            <p>ETH and every priced token in your Robinhood Chain wallet, not just THOOK. What counts is the <b>lowest</b> amount you held during the week, so selling and buying back can't create a fake loss.</p>
+            <MinBalanceChart />
+            <div className="dc-formula">loss = held × (price at week start − price at week end), summed over all assets</div>
+            <h3>3 · Biggest loss wins</h3>
+            <div className="dc-split">
+              <div>
+                <p>The holder with the largest USD loss gets the whole pot in ETH. Gains offset losses.</p>
+                <p>A <b>Claude AI agent</b> then checks the top candidates and removes pools, exchanges and farming setups, always with a written reason. It can't choose the winner.</p>
+                <p>Every week's report is public, and its fingerprint is stored on-chain with the payout. See winners on <a href="/stats">Statistics</a>.</p>
+              </div>
+              <div className="dc-vis"><LoserVisual /></div>
+            </div>
           </section>
 
           <section id="tokenomics">
             <h2>Tokenomics</h2>
-            <table className="ptable dc-table">
-              <tbody>
-                <tr><td>Name / ticker</td><td><b>Tax Hook · $THOOK</b></td></tr>
-                <tr><td>Chain</td><td>Robinhood Chain (4663)</td></tr>
-                <tr><td>Total supply</td><td>1,000,000,000, fixed with no mint</td></tr>
-                <tr><td>Team / dev allocation</td><td>0%: the deployer holds 0 THOOK</td></tr>
-                <tr><td>Liquidity</td><td>100% of supply in the Uniswap v4 pool, locked forever</td></tr>
-                <tr><td>Launch price</td><td>3 ETH fully diluted value, no presale</td></tr>
-                <tr><td>Tax</td><td>4% buy · 4% sell, in ETH, all to the weekly pot</td></tr>
-              </tbody>
-            </table>
+            <div className="dc-split">
+              <SupplyRing />
+              <table className="ptable dc-table">
+                <tbody>
+                  <tr><td>Ticker</td><td><b>$THOOK</b> · Tax Hook</td></tr>
+                  <tr><td>Supply</td><td>1,000,000,000 · fixed</td></tr>
+                  <tr><td>Team</td><td>0%</td></tr>
+                  <tr><td>Liquidity</td><td>100%, locked forever</td></tr>
+                  <tr><td>Launch</td><td>3 ETH FDV · fair launch</td></tr>
+                  <tr><td>Tax</td><td>4% buy · 4% sell</td></tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section id="contracts">
             <h2>Contracts</h2>
-            <p>All contracts are verified and open source (Sourcify + Blockscout).</p>
+            <p>How the pieces connect. Everything is verified and open source.</p>
+            <ContractMap />
             <div className="dc-addrs">
               {addr("Token ($THOOK)", cfg?.token)}
               {addr("Fee hook (4%)", cfg?.hook, "immutable · no owner")}
               {addr("Fee vault (pot)", cfg?.vault, "owned by the Safe")}
-              {addr("LP lock (seeder)", cfg?.seeder, "no withdraw function")}
-              {addr("Safe (vault owner)", cfg?.safe)}
-              {addr("Keeper (payouts)", cfg?.keeper, "can only pay the weekly prize")}
+              {addr("LP lock", cfg?.seeder, "no withdraw function")}
+              {addr("Safe", cfg?.safe)}
+              {addr("Keeper", cfg?.keeper, "weekly payout only")}
               {addr("Uniswap v4 PoolManager", cfg?.poolManager)}
             </div>
             {cfg?.poolId && <p className="dc-note">Pool ID <span className="mono">{cfg.poolId}</span></p>}
@@ -133,14 +149,15 @@ export default function Docs() {
 
           <section id="security">
             <h2>Security</h2>
-            <ul>
-              <li><b>Token:</b> plain ERC-20 with no owner, mint, blacklist, pause, proxy or tax code. Ownership is renounced by design: the contract has none.</li>
-              <li><b>Hook:</b> no owner and no setters. Only the launch seeder could ever create a pool with it.</li>
-              <li><b>Liquidity:</b> held by the seeder contract, which has no function to remove it. Nobody can pull it.</li>
-              <li><b>Vault:</b> owned by a Safe multisig, which can withdraw, pause or replace the keeper.</li>
-              <li><b>Keeper:</b> can only pay the weekly prize, and the contract limits it on-chain to once per finished week, only to THOOK holders, with a cap on recipients and amount.</li>
-              <li><b>Status:</b> internally reviewed and tested on a mainnet fork, not externally audited.</li>
-            </ul>
+            <CheckList items={[
+              ["Ownerless token", "No owner, mint, blacklist, pause or proxy: ownership is renounced by design."],
+              ["Immutable tax", "The 4% hook has no owner and no settings."],
+              ["Locked liquidity", "The LP lock contract has no way to remove liquidity."],
+              ["Safe-owned vault", "Only the Safe multisig can withdraw, pause or change the keeper."],
+              ["Limited keeper", "It can only pay the weekly prize, capped on-chain."],
+              ["Open source", "All contracts are verified on the explorer."],
+            ]} />
+            <p className="dc-note">Internally reviewed and tested on a mainnet fork. Not externally audited.</p>
           </section>
 
           <section id="faq">
@@ -161,11 +178,11 @@ export default function Docs() {
           <section id="links">
             <h2>Links</h2>
             <div className="links" style={{ marginTop: 0 }}>
-              <a className="btn btn-lime" href={buyUrl(cfg?.token)} target="_blank" rel="noreferrer">Buy $THOOK</a>
-              <a className="btn" href={X_URL} target="_blank" rel="noreferrer">X · @usetaxtech</a>
-              {cfg?.token && <a className="btn" href={dexscreener(cfg.token)} target="_blank" rel="noreferrer">Dexscreener</a>}
-              {cfg?.token && <a className="btn" href={gecko(cfg.token)} target="_blank" rel="noreferrer">GeckoTerminal</a>}
-              {cfg?.token && <a className="btn" href={explorer("token", cfg.token)} target="_blank" rel="noreferrer">Explorer</a>}
+              <BrandLink brand="uniswap" href={buyUrl(cfg?.token)} primary>Buy $THOOK</BrandLink>
+              <BrandLink brand="x" href={X_URL}>@usetaxtech</BrandLink>
+              {cfg?.token && <BrandLink brand="dexscreener" href={dexscreener(cfg.token)}>Dexscreener</BrandLink>}
+              {cfg?.token && <BrandLink brand="geckoterminal" href={gecko(cfg.token)}>GeckoTerminal</BrandLink>}
+              {cfg?.token && <BrandLink brand="explorer" href={explorer("token", cfg.token)}>Explorer</BrandLink>}
             </div>
             <p className="dc-note" style={{ marginTop: 18 }}>Contract: <span className="mono">{cfg?.token ? short(cfg.token) : "…"}</span> · Docs updated October 2026.</p>
           </section>
