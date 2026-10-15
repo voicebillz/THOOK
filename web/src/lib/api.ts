@@ -19,6 +19,7 @@ export type Stats = {
   epochEnd: number;
   holders: number;
   daily: { day: string; eth: number }[];
+  hourly?: { t: number; eth: number }[];
   winners: { epoch: number; winner: string; amountEth: number; rank: number; tx: string; t?: number }[];
   updatedAt: number;
 };

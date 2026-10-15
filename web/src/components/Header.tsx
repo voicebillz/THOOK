@@ -5,6 +5,7 @@ import { LogoTile } from "./Logo";
 import { WalletButton } from "./WalletButton";
 import { useConnection } from "wagmi";
 import { useConfig } from "../lib/api";
+import { X_URL } from "../lib/links";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -43,6 +44,7 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
+        <a className="xlink" href={X_URL} target="_blank" rel="noreferrer" aria-label="THOOK on X"><img src="/logos/x.svg" alt="" width="15" height="15" /></a>
         {isAdmin && <a className="wbtn admin-link" href="/admin">Admin</a>}
         <WalletButton />
       </div>

@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { LogoTile } from "../components/Logo";
 import { Reveal, Words } from "../components/Reveal";
-import { Counter } from "../components/Counter";
 import { Countdown } from "../components/Countdown";
-import { Bars } from "../components/Bars";
+import { FeeChart } from "../components/FeeChart";
 import { HowItWorks } from "../components/HowItWorks";
 import { Sk } from "../components/Skeleton";
 import { useStats, useToken } from "../lib/api";
@@ -61,14 +60,12 @@ export default function Home() {
           <div className="dcard-hero">
             <div className="dk">This week's pot</div>
             <div className="big">{s ? (live ? fmtUsd(usd(s.potEth)) : "$0") : <Sk w="7ch" h="1em" />}</div>
-            <div className="sub">{s ? (live ? <><Counter value={s.potEth} /> ETH</> : "launching soon") : <Sk w="9ch" />}</div>
           </div>
 
           <div className="dcard-row">
             <div>
               <div className="dk">Fees collected</div>
               <div className="v">{s ? (live ? fmtUsd(usd(s.totalFeesEth), true) : "$0") : <Sk w="5ch" />}</div>
-              <div className="s">since launch</div>
             </div>
             <div className="r">
               <div className="dk">Tax</div>
@@ -76,7 +73,9 @@ export default function Home() {
             </div>
           </div>
 
-          {s ? (live && s.daily?.length ? <Bars series={s.daily} cumulative /> : <div className="bars-wrap"><div className="bars-grid" /></div>) : <span className="sk" style={{ width: "100%", height: 64, display: "block" }} />}
+          <div className="dcard-chart">
+            {s ? <FeeChart stats={live ? s : undefined} mode="fees" height={72} /> : <span className="sk" style={{ width: "100%", height: 72, display: "block" }} />}
+          </div>
 
           <div className="dcard-list">
             <div className="dline">

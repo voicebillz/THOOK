@@ -5,3 +5,5 @@ export function buyUrl(token?: string | null) {
 }
 export const gecko = (t: string) => `https://www.geckoterminal.com/robinhood/tokens/${t}`;
 export const dexscreener = (t: string) => `https://dexscreener.com/robinhood/${t}`;
+
+export const X_URL = "https://x.com/usetaxtech";

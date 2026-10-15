@@ -56,6 +56,22 @@ async function blocksPerDay(head) {
   return bpdCache.v;
 }
 
+/** Hourly fee totals for the last 7 days (or since the first fee), zero-filled. */
+function hourlySeries(fees) {
+  if (!fees.length) return [];
+  const H = 3600;
+  const now = Math.floor(Date.now() / 1000 / H) * H;
+  const first = Math.max(Math.floor(fees[0].t / H) * H, now - 7 * 24 * H);
+  const buckets = new Map();
+  for (const f of fees) {
+    const h = Math.floor(f.t / H) * H;
+    if (h >= first) buckets.set(h, (buckets.get(h) || 0n) + BigInt(f.v));
+  }
+  const out = [];
+  for (let h = first; h <= now; h += H) out.push({ t: h, eth: Number(formatEther(buckets.get(h) || 0n)) });
+  return out;
+}
+
 /** Daily fee totals from launch (or the first fee) to today, zero-filled. */
 function dailySeries(daily) {
   const days = Object.keys(daily).sort();
@@ -96,6 +112,7 @@ export async function getStats() {
     epochEnd,
     holders: holderCount(),
     daily: dailySeries(ev.daily || {}),
+    hourly: hourlySeries(ev.fees || []),
     winners: [...ev.airdrops].reverse().slice(0, 20).map((a) => ({ ...a, amountEth: Number(formatEther(BigInt(a.amount))) })),
     updatedAt: Date.now(),
   };

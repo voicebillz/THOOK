@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Counter } from "../components/Counter";
 import { Countdown } from "../components/Countdown";
-import { Bars } from "../components/Bars";
+import { FeeChart, pickSeries } from "../components/FeeChart";
 import { Reveal } from "../components/Reveal";
 import { Sk } from "../components/Skeleton";
 import { useEpochs, useStats } from "../lib/api";
@@ -24,10 +24,10 @@ export default function Stats() {
   const reduce = useReducedMotion();
   const { data: s, isError } = useStats();
   const epochs = useEpochs();
-  const [mode, setMode] = useState<"cum" | "daily">("cum");
+  const [mode, setMode] = useState<"fees" | "volume">("fees");
   const live = !!s?.live;
   const usd = (eth?: number) => (s?.ethUsd != null && eth != null ? eth * s.ethUsd : null);
-  const first = s?.daily?.[0]?.day;
+  const first = pickSeries(s).pts[0]?.t;
   const total = s?.totalFeesEth ?? 0;
   const parts = live ? [
     { k: "Airdropped to losers", eth: s!.totalDistributedEth, c: "var(--lime)" },
@@ -62,17 +62,17 @@ export default function Stats() {
         <Reveal delay={0.1}>
           <div className="bignum">
             <div>
-              <div className="v" aria-live="polite">{s ? (live ? <><Counter value={total} digits={4} /> ETH</> : "0 ETH") : <Sk w="9ch" />}</div>
-              <div className="l">{s ? <>Total fees{live && usd(total) != null ? ` · ${fmtUsd(usd(total))}` : ""}{first ? ` · ${new Date(first + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – today` : ""}</> : <Sk w="14ch" />}</div>
+              <div className="v mono-num" aria-live="polite">
+                {s ? (live ? fmtUsd(usd(mode === "fees" ? total : total / 0.04) ?? 0, (usd(total) ?? 0) >= 100_000) : "$0") : <Sk w="7ch" />}
+              </div>
+              <div className="l">{s ? <>{mode === "fees" ? "Total fees collected" : "Total volume"}{first ? ` · ${new Date(first).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – today` : ""}</> : <Sk w="14ch" />}</div>
             </div>
             <div className="seg" role="group" aria-label="Chart mode">
-              <button className={mode === "cum" ? "on" : ""} onClick={() => setMode("cum")}>Fees collected</button>
-              <button className={mode === "daily" ? "on" : ""} onClick={() => setMode("daily")}>Daily</button>
+              <button className={mode === "fees" ? "on" : ""} onClick={() => setMode("fees")}>Fees collected</button>
+              <button className={mode === "volume" ? "on" : ""} onClick={() => setMode("volume")}>Volume</button>
             </div>
           </div>
-          <div className="chart-tall">
-            {s ? (s.daily?.length ? <Bars key={mode} series={s.daily} cumulative={mode === "cum"} height={150} /> : <div className="bars-wrap" style={{ height: 150 }}><div className="bars-grid" /></div>) : <span className="sk" style={{ width: "100%", height: 150, display: "block" }} />}
-          </div>
+          {s ? <FeeChart key={mode} stats={s} mode={mode} height={210} /> : <span className="sk" style={{ width: "100%", height: 210, display: "block" }} />}
         </Reveal>
 
         <h2 className="stats-section">Winners</h2>

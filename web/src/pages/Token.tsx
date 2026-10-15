@@ -4,7 +4,7 @@ import { Reveal } from "../components/Reveal";
 import { Sk } from "../components/Skeleton";
 import { useToken } from "../lib/api";
 import { explorer, fmtNum, fmtUsd, short } from "../lib/format";
-import { buyUrl, dexscreener, gecko } from "../lib/links";
+import { buyUrl, dexscreener, gecko, X_URL } from "../lib/links";
 
 export default function Token() {
   const { data: t, isError } = useToken();
@@ -71,6 +71,7 @@ export default function Token() {
               <a className="btn btn-lime" href={buyUrl(t!.address)} target="_blank" rel="noreferrer">Buy $THOOK</a>
               <a className="btn" href={gecko(t!.address)} target="_blank" rel="noreferrer">GeckoTerminal</a>
               <a className="btn" href={dexscreener(t!.address)} target="_blank" rel="noreferrer">Dexscreener</a>
+              <a className="btn" href={X_URL} target="_blank" rel="noreferrer">X · @usetaxtech</a>
               <a className="btn" href={explorer("token", t!.address)} target="_blank" rel="noreferrer">Explorer</a>
             </div>
             <dl className="kv" style={{ marginTop: 28 }}>
