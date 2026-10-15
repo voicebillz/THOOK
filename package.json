@@ -1,0 +1,22 @@
+{
+  "name": "thook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "$THOOK (Tax Hook) — Robinhood Chain token on a Uniswap v4 pool with a 4% ETH fee hook. Fees go to a Safe-owned vault and are airdropped weekly to the holder with the biggest portfolio loss.",
+  "license": "MIT",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test test/*.test.js",
+    "test:fork": "FORK=1 hardhat test test/fork/*.test.js",
+    "deploy": "hardhat run scripts/deploy.js --network robinhood"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
+    "@uniswap/v4-core": "^1.0.2",
+    "@uniswap/v4-periphery": "^1.0.3"
+  }
+}

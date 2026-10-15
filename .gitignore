@@ -1,0 +1,11 @@
+node_modules/
+artifacts/
+cache/
+typechain-types/
+coverage/
+.env
+.env.*
+!.env.example
+deploy-output.json.bak
+keeper/node_modules/
+keeper/data/
