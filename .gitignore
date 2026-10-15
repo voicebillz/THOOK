@@ -13,3 +13,4 @@ web/dist/
 server/node_modules/
 web/node_modules/
 *.tsbuildinfo
+server/.e2e/

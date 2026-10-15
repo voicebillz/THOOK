@@ -3,6 +3,8 @@ import { NavLink, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { LogoTile } from "./Logo";
 import { WalletButton } from "./WalletButton";
+import { useConnection } from "wagmi";
+import { useConfig } from "../lib/api";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -12,6 +14,10 @@ const LINKS = [
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  // Admin shortcut: only when the connected wallet is ADMIN_WALLET (from Railway).
+  const { address } = useConnection();
+  const cfg = useConfig();
+  const isAdmin = !!address && !!cfg.data?.admin && address.toLowerCase() === cfg.data.admin.toLowerCase();
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
     on();
@@ -37,6 +43,7 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
+        {isAdmin && <a className="wbtn admin-link" href="/admin">Admin</a>}
         <WalletButton />
       </div>
     </header>

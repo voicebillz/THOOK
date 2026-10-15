@@ -2,7 +2,7 @@ import { createPublicClient, createWalletClient, http, parseAbi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { env, robinhood } from "./config.js";
 
-export const pub = createPublicClient({ chain: robinhood, transport: http(env.RPC_URL, { retryCount: 3 }), batch: { multicall: true } });
+export const pub = createPublicClient({ chain: robinhood, transport: http(env.RPC_URL, { retryCount: 3 }) });
 
 export const keeperAccount = /^0x[0-9a-fA-F]{64}$/.test(env.KEEPER_KEY.trim())
   ? privateKeyToAccount(env.KEEPER_KEY.trim())

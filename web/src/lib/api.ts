@@ -56,7 +56,7 @@ export type Config = {
   seeder?: string;
   hook?: string;
   hookDeployer?: string;
-  safe?: string;
+  safe?: string | null;
   deployBlock?: number;
   poolId?: string;
 };
@@ -76,7 +76,7 @@ export function adminSession(): { message: string; signature: string } | null {
     const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
     if (!s) return null;
     const ts = Number(/ts: (\d+)/.exec(s.message)?.[1] || 0);
-    if (Date.now() - ts > 11 * 3600_000) return null;
+    if (Date.now() - ts > 3.9 * 3600_000) return null;
     return s;
   } catch {
     return null;
@@ -90,8 +90,9 @@ export function saveAdminSession(s: { message: string; signature: string } | nul
   } catch { /* private mode */ }
 }
 
+/** Domain-bound login message (the server rejects signatures made for other sites). */
 export function sessionMessage() {
-  return `THOOK admin\naction: session\nts: ${Date.now()}`;
+  return `THOOK admin\ndomain: ${window.location.host}\naction: session\nts: ${Date.now()}`;
 }
 
 export async function adminCall<T = unknown>(path: string, body?: unknown): Promise<T> {

@@ -14,7 +14,10 @@ function cleanAddress(raw, name) {
 export const env = {
   PORT: Number(process.env.PORT || 8080),
   RPC_URL: process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com",
-  ADMIN_WALLET: cleanAddress(process.env.ADMIN_WALLET, "ADMIN_WALLET"),
+  // Owner's portal-login wallet and Safe (public addresses; env overrides).
+  ADMIN_WALLET: cleanAddress(process.env.ADMIN_WALLET || "0x1C7768ABcD47cf0427dDc5C5DBF0F9a7Ff621325", "ADMIN_WALLET"),
+  SAFE_ADDRESS: cleanAddress(process.env.SAFE_ADDRESS || "0x0FAA730e822622fd804A20140bC8bb299caF1db8", "SAFE_ADDRESS"),
+  ADMIN_DOMAIN: process.env.ADMIN_DOMAIN || "thook.vip",
   KEEPER_KEY: process.env.KEEPER_KEY || "",
   KEEPER_ENABLED: process.env.KEEPER_ENABLED === "true",
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL || "claude-opus-5-5",

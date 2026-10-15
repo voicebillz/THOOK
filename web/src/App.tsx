@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Header, Footer } from "./components/Header";
@@ -7,7 +7,6 @@ import Home from "./pages/Home";
 import Stats from "./pages/Stats";
 import Token from "./pages/Token";
 
-const Admin = lazy(() => import("./pages/Admin"));
 
 function Page({ children }: { children: React.ReactNode }) {
   const reduce = useReducedMotion();
@@ -32,7 +31,6 @@ export default function App() {
             <Route path="/" element={<Page><Home /></Page>} />
             <Route path="/stats" element={<Page><Stats /></Page>} />
             <Route path="/thook" element={<Page><Token /></Page>} />
-            <Route path="/admin" element={<Page><Suspense fallback={<div className="page wrap"><span className="sk" style={{ width: 200, height: 40 }} /></div>}><Admin /></Suspense></Page>} />
             <Route path="*" element={<Page><div className="page wrap"><h1 className="page-title">Off the hook.</h1><p className="page-intro">That page doesn't exist.</p></div></Page>} />
           </Routes>
         </AnimatePresence>

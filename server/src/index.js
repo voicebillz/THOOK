@@ -11,13 +11,19 @@ import { syncHolders, holderState } from "./holders.js";
 import { takeSnapshot, epochClock } from "./snapshots.js";
 import { settleEpoch, buildReport, weekSnaps } from "./payout.js";
 import { getStats, getToken, listReports } from "./stats.js";
+import { preflight, runStep } from "./launch.js";
+import { verifyAll, lastVerify } from "./verify.js";
 
 const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", 1); // Railway edge → real client IP for rate limits
 app.use(express.json({ limit: "100kb" }));
 app.use((req, res, next) => {
   res.set("Access-Control-Allow-Origin", env.CORS_ORIGIN);
   res.set("Access-Control-Allow-Headers", "content-type, x-admin-message, x-admin-signature");
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "no-referrer");
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
@@ -40,6 +46,7 @@ app.get("/api/config", (_req, res) => {
     poolManager: POOL_MANAGER,
     admin: env.ADMIN_WALLET || null,
     keeper: keeperAccount?.address || null,
+    safe: env.SAFE_ADDRESS || null,
     minHoldThook: Number(env.MIN_HOLD / 10n ** 18n),
     ...d,
   });
@@ -64,7 +71,7 @@ app.get("/api/reports/:epoch", (req, res) => {
 });
 
 // ------------------------------------------------------------------- admin
-app.get("/api/admin/status", requireAdmin("session"), wrap(async (_req, res) => {
+app.get("/api/admin/status", requireAdmin(), wrap(async (_req, res) => {
   const d = deployment();
   const out = { store: storeKind(), deployment: d, runs, keeper: keeperAccount?.address || null, keeperEnabled: env.KEEPER_ENABLED };
   if (keeperAccount) out.keeperBalanceEth = Number(formatEther(await pub.getBalance({ address: keeperAccount.address })));
@@ -82,9 +89,23 @@ app.get("/api/admin/status", requireAdmin("session"), wrap(async (_req, res) => 
   res.json(out);
 }));
 
+app.get("/api/admin/session", requireAdmin(), (_req, res) => res.json({ ok: true, admin: env.ADMIN_WALLET }));
+
+app.get("/api/admin/launch", requireAdmin(), wrap(async (_req, res) => res.json({ ...(await preflight()), verify: lastVerify() })));
+
+app.post("/api/admin/launch", requireAdmin(), wrap(async (req, res) => {
+  const { step, params } = req.body || {};
+  const out = await runStep(String(step || ""), params || {});
+  syncHolders().catch(() => {});
+  if (out.step === "seed") verifyAll().catch(() => {}); // publish sources right after launch
+  res.json(out);
+}));
+
+app.post("/api/admin/verify", requireAdmin(), wrap(async (_req, res) => res.json({ results: await verifyAll() })));
+
 // The portal posts the addresses it just deployed; the server checks they are
 // wired together on-chain before saving.
-app.post("/api/admin/config", requireAdmin("session"), wrap(async (req, res) => {
+app.post("/api/admin/config", requireAdmin(), wrap(async (req, res) => {
   const b = req.body || {};
   for (const k of ["token", "vault", "seeder", "hook", "hookDeployer", "safe"]) {
     if (b[k] != null && b[k] !== "" && !isAddress(b[k])) return res.status(400).json({ error: `bad ${k}` });
@@ -111,7 +132,7 @@ app.post("/api/admin/config", requireAdmin("session"), wrap(async (req, res) => 
   syncHolders().catch(() => {});
 }));
 
-app.post("/api/admin/run", requireAdmin("session"), wrap(async (req, res) => {
+app.post("/api/admin/run", requireAdmin(), wrap(async (req, res) => {
   const task = String(req.body?.task || "");
   const clock = await epochClock();
   if (task === "sync") return res.json(await syncHolders().then((s) => ({ indexed: Object.keys(s.balances).length })));

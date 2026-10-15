@@ -60,7 +60,7 @@ Prices: GeckoTerminal (Robinhood network). Balances: Blockscout API, with an on-
      for gas), `ANTHROPIC_API_KEY`, `CORS_ORIGIN=https://thook.vip`, `KEEPER_ENABLED=false`.
 3. **Vercel** (root = `web/`): `VITE_API_URL=<railway url>`, `VITE_WALLETCONNECT_PROJECT_ID`, `VITE_SITE_URL=https://thook.vip`.
    Point `thook.vip` at Vercel.
-4. Open **thook.vip/admin**, connect your admin wallet, sign in (free signature), then run the 9 launch steps
+4. Open **thook.vip/admin**, connect the owner wallet (`ADMIN_WALLET`), sign in (free signature), check Pre-flight, then run the 8 launch steps — every transaction is sent by the keeper key on Railway; the vault is owned by the Safe from deploy. See `docs/LAUNCH-AUDIT.md`.
    (token → vault → seeder → hook deployer → mine+deploy hook → bind → fund → **seed = trading opens** → save).
    Pick the start FDV (launch price) before step 1.
 5. **Safe:** create a Safe on Robinhood Chain at app.safe.global, then in /admin → *Hand over to Safe* →
