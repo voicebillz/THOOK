@@ -11,8 +11,9 @@ import { short } from "../lib/format";
 import LaunchPanel from "./LaunchPanel";
 import VaultPanel from "./VaultPanel";
 import KeeperPanel from "./KeeperPanel";
+import TradePanel from "./TradePanel";
 
-type Tab = "launch" | "vault" | "keeper";
+type Tab = "launch" | "trade" | "vault" | "keeper";
 
 export default function AdminApp() {
   const { address, isConnected } = useConnection();
@@ -61,9 +62,9 @@ export default function AdminApp() {
           </a>
           {authed === "yes" && (
             <nav className="nav" aria-label="Admin">
-              {(["launch", "vault", "keeper"] as Tab[]).map((t) => (
+              {(["launch", "trade", "vault", "keeper"] as Tab[]).map((t) => (
                 <a key={t} href={`#${t}`} className={tab === t ? "active" : ""} onClick={(e) => { e.preventDefault(); setTab(t); }}>
-                  {t === "launch" ? "Launch" : t === "vault" ? "Vault" : "Keeper"}
+                  {t === "launch" ? "Launch" : t === "trade" ? "Trade" : t === "vault" ? "Vault" : "Keeper"}
                   {tab === t && <span className="nav-dot" />}
                 </a>
               ))}
@@ -106,6 +107,7 @@ export default function AdminApp() {
           ) : (
             <>
               {tab === "launch" && <LaunchPanel onChange={() => cfg.refetch()} />}
+              {tab === "trade" && cfg.data && <TradePanel cfg={cfg.data} />}
               {tab === "vault" && cfg.data && <VaultPanel cfg={cfg.data} />}
               {tab === "keeper" && <KeeperPanel />}
             </>
