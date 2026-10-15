@@ -12,3 +12,4 @@ keeper/data/
 web/dist/
 server/node_modules/
 web/node_modules/
+*.tsbuildinfo
