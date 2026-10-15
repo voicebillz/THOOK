@@ -58,7 +58,7 @@ Prices: GeckoTerminal (Robinhood network). Balances: Blockscout API, with an on-
    - Add a **Volume** mounted at `/data`.
    - Variables (see `server/.env.example`): `ADMIN_WALLET` (your wallet), `KEEPER_KEY` (new hot wallet, fund ~0.01 ETH
      for gas), `ANTHROPIC_API_KEY`, `DATA_DIR=/data`, `CORS_ORIGIN=https://thook.vip`, `KEEPER_ENABLED=false`.
-3. **Vercel** (root = `web/`): `VITE_API_URL=<railway url>`, `VITE_REOWN_PROJECT_ID`, `VITE_SITE_URL=https://thook.vip`.
+3. **Vercel** (root = `web/`): `VITE_API_URL=<railway url>`, `VITE_WALLETCONNECT_PROJECT_ID`, `VITE_SITE_URL=https://thook.vip`.
    Point `thook.vip` at Vercel.
 4. Open **thook.vip/admin**, connect your admin wallet, sign in (free signature), then run the 9 launch steps
    (token → vault → seeder → hook deployer → mine+deploy hook → bind → fund → **seed = trading opens** → save).

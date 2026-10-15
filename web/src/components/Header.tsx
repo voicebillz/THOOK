@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { useAppKit } from "@reown/appkit/react";
-import { useConnection } from "wagmi";
 import { LogoTile } from "./Logo";
-import { short } from "../lib/format";
+import { WalletButton } from "./WalletButton";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -14,8 +12,6 @@ const LINKS = [
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
-  const { open } = useAppKit();
-  const { address, isConnected } = useConnection();
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
     on();
@@ -41,9 +37,7 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
-        <button className={`btn btn-sm ${isConnected ? "" : "btn-lime"}`} onClick={() => open()}>
-          {isConnected ? short(address) : "Connect"}
-        </button>
+        <WalletButton />
       </div>
     </header>
   );

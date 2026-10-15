@@ -2,13 +2,13 @@
 // on-chain step itself — no owner key ever touches the server.
 import { useEffect, useMemo, useState } from "react";
 import { useConnection, usePublicClient, useWalletClient, useSignMessage, useSwitchChain } from "wagmi";
-import { useAppKit } from "@reown/appkit/react";
 import { encodeAbiParameters, encodeFunctionData, formatEther, getAddress, isAddress, parseEther, type Abi, type Hex } from "viem";
 import artifacts from "../abi/contracts.json";
 import { adminCall, adminSession, saveAdminSession, sessionMessage, useConfig, type Config } from "../lib/api";
 import { mineHookSalt } from "../lib/mineHook";
 import { explorer, short } from "../lib/format";
 import { robinhood } from "../lib/wallet";
+import { WalletButton } from "../components/WalletButton";
 
 const POOL_MANAGER = "0x8366a39CC670B4001A1121B8F6A443A643e40951";
 type Art = { abi: Abi; bytecode: Hex };
@@ -23,7 +23,6 @@ const loadState = (): DeployState => { try { return JSON.parse(localStorage.getI
 
 export default function Admin() {
   const { address, isConnected, chainId } = useConnection();
-  const { open } = useAppKit();
   const { mutate: switchChain } = useSwitchChain();
   const { mutateAsync: signMessageAsync } = useSignMessage();
   const cfg = useConfig();
@@ -45,7 +44,7 @@ export default function Admin() {
         <h1 className="page-title">Control room.</h1>
         <p className="page-intro">Deploy, wire and run THOOK — every on-chain action is signed by your wallet.</p>
 
-        {!isConnected && <button className="btn btn-lime btn-lg" onClick={() => open()}>Connect admin wallet</button>}
+        {!isConnected && <WalletButton size="lg" label="Connect admin wallet" />}
         {isConnected && cfg.isLoading && <span className="sk" style={{ width: 260, height: 20 }} />}
         {isConnected && cfg.isError && <div className="note note-danger">Can't reach the server (VITE_API_URL). Check Railway.</div>}
         {isConnected && cfg.data && !cfg.data.admin && <div className="note note-warning">Set ADMIN_WALLET={address} on Railway, then reload.</div>}

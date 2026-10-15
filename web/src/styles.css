@@ -304,3 +304,20 @@ pre.code { background: var(--bg); border: 1px solid var(--line); border-radius: 
 .legend .pct { width: 52px; text-align: right; color: var(--ink-3); font-family: var(--mono); font-size: 11px; }
 @media (max-width: 640px) { .legend { grid-template-columns: 1fr; } }
 .hdr:not(.scrolled) { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* ---------- wallet button (WalletConnect) ---------- */
+.wbtn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); white-space: nowrap; transition: background 200ms var(--ease), border-color 200ms var(--ease), transform 110ms var(--ease), box-shadow 200ms var(--ease); }
+.wbtn:active { transform: scale(0.97); }
+.wbtn:disabled { opacity: 0.6; cursor: progress; }
+.wbtn-connect { background: var(--lime); border-color: var(--lime); color: #0b0b0b; box-shadow: 0 0 0 0 rgba(92, 168, 86, 0); }
+.wbtn-connect:hover { background: #6cbb65; border-color: #6cbb65; box-shadow: 0 8px 24px -10px rgba(92, 168, 86, 0.7); }
+.wbtn-lg { height: 48px; padding: 0 22px; font-size: 15px; }
+.wbtn-acct { padding: 0 6px 0 6px; gap: 0; background: var(--panel); }
+.wbtn-acct:hover { border-color: var(--ink-3); }
+.wbal { font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 0 10px 0 8px; border-right: 1px solid var(--line-2); margin-right: 6px; height: 22px; display: inline-flex; align-items: center; }
+.wava { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+.waddr { font-family: var(--mono); font-size: 12.5px; padding: 0 8px 0 8px; }
+.wbtn-warn { border-color: rgba(217, 164, 65, 0.5); color: var(--gold); background: rgba(217, 164, 65, 0.08); }
+.wdot { width: 7px; height: 7px; border-radius: 50%; }
+.wdot.warn { background: var(--gold); }
+@media (max-width: 640px) { .wbal { display: none; } .wbtn { height: 34px; padding: 0 12px; } .wbtn-acct { padding: 0 4px; } .wbtn-warn { font-size: 12px; } }
