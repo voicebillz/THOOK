@@ -63,7 +63,7 @@ export default function LaunchPanel({ onChange }: { onChange: () => void }) {
 
       <div className="card">
         <h3>Steps</h3>
-        <p className="sub">One click per step; each one is a transaction from the keeper. Safe to retry.</p>
+        <p className="sub">One click per step, sent by the keeper. No ETH seeding — the whole launch only costs gas (~0.0005 ETH). Safe to retry.</p>
         {!s.token && (
           <div className="admin-grid" style={{ marginBottom: 12 }}>
             <div className="field"><label>Start FDV in ETH (launch price — fixed forever)</label><input value={fdv} onChange={(e) => setFdv(e.target.value.replace(/[^0-9.]/g, ""))} inputMode="decimal" /></div>

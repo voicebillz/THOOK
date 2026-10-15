@@ -25,8 +25,8 @@ export const STEPS = [
   { id: "hookDeployer", title: "Deploy hook deployer", detail: "CREATE2 helper" },
   { id: "hook", title: "Mine + deploy 4% fee hook", detail: "address encodes the v4 permission bits" },
   { id: "setHook", title: "Bind hook to seeder", detail: "seeder.setHook(hook) — one time" },
-  { id: "fund", title: "Move full supply to seeder", detail: "keeper → seeder, keeper ends with 0 THOOK" },
-  { id: "seed", title: "Seed locked pool — TRADING OPENS", detail: "creates the ETH/THOOK Uniswap v4 pool" },
+  { id: "fund", title: "Move full supply to the LP lock", detail: "keeper → seeder, keeper ends with 0 THOOK" },
+  { id: "seed", title: "Open trading — supply into locked pool", detail: "puts the THOOK supply in the v4 pool · no ETH needed · only gas" },
 ];
 
 let busy = null;
