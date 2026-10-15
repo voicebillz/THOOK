@@ -29,14 +29,35 @@ app.use((req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("X-Frame-Options", "DENY");
   res.set("Referrer-Policy", "no-referrer");
+  res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
+  res.set("Cross-Origin-Resource-Policy", "same-site");
+  res.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
 
+// Per-IP rate limits (in-memory, fixed 60 s window).
+const hits = new Map();
+function rateLimit(limit) {
+  return (req, res, next) => {
+    const key = `${limit}:${req.ip || "?"}`;
+    const now = Date.now();
+    let h = hits.get(key);
+    if (!h || h.reset < now) { h = { n: 0, reset: now + 60_000 }; hits.set(key, h); }
+    if (++h.n > limit) { res.set("Retry-After", String(Math.ceil((h.reset - now) / 1000))); return res.status(429).json({ error: "too many requests" }); }
+    if (hits.size > 50_000) for (const [k, v] of hits) if (v.reset < now) hits.delete(k);
+    next();
+  };
+}
+app.use("/api/admin", rateLimit(60));
+app.use("/api", rateLimit(240));
+
 const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((err) => {
   console.error(req.path, err);
-  res.status(500).json({ error: String(err?.shortMessage || err?.message || err) });
+  // Admin callers get the real reason; the public only a generic message.
+  const msg = req.path.startsWith("/api/admin") ? String(err?.shortMessage || err?.message || err) : "temporarily unavailable";
+  res.status(500).json({ error: msg });
 });
 
 const runs = { lastTick: null, lastSnapshot: null, lastSettle: null, lastError: null };

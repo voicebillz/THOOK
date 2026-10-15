@@ -1,0 +1,38 @@
+{
+  "site": "https://www.thook.vip",
+  "name": "$THOOK — Tax Hook",
+  "twitter": "@usetaxtech",
+  "routes": {
+    "/": {
+      "file": "index.html",
+      "title": "$THOOK — Lose the most, win the pot | Tax Hook on Robinhood Chain",
+      "description": "Every $THOOK trade pays a 4% tax in ETH. Each week the whole pot is airdropped to the holder whose portfolio lost the most. Liquidity locked forever on Uniswap v4.",
+      "og": "/og/home.jpg"
+    },
+    "/stats": {
+      "file": "stats.html",
+      "title": "Statistics — fees, weekly pot & winners | $THOOK",
+      "description": "Live $THOOK statistics: total fees collected, this week's pot, holders, volume and every weekly airdrop winner, straight from the on-chain vault.",
+      "og": "/og/stats.jpg"
+    },
+    "/thook": {
+      "file": "thook.html",
+      "title": "$THOOK token — price, contract & tokenomics | Tax Hook",
+      "description": "$THOOK on Robinhood Chain: 1B fixed supply, no owner, 4% buy & sell tax in ETH, 100% liquidity locked. Contract address, price, market cap and links.",
+      "og": "/og/token.jpg"
+    },
+    "/docs": {
+      "file": "docs.html",
+      "title": "Docs — how $THOOK works | Tax, weekly prize & contracts",
+      "description": "How $THOOK works: the 4% ETH tax hook, how the weekly biggest-loser prize is measured and audited by Claude, tokenomics, verified contracts and security.",
+      "og": "/og/docs.jpg"
+    }
+  },
+  "faq": [
+    ["Do I need to claim anything?", "No. The winner receives ETH directly in their wallet."],
+    ["Which wallet counts?", "The wallet that holds your THOOK. Only that wallet's Robinhood Chain portfolio is measured."],
+    ["Can the tax ever change?", "No. The 4% is a constant in an ownerless contract."],
+    ["Is the liquidity really locked?", "Yes. The contract that holds it has no function to remove it, and its source is verified on the explorer."],
+    ["Why does a scanner show 0% tax?", "The tax is taken in ETH by the Uniswap v4 pool hook, not by the token, so token-only scanners can't see it. It is 4% on every buy and sell."]
+  ]
+}

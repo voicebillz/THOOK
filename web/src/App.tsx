@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Stats from "./pages/Stats";
 import Token from "./pages/Token";
 import Docs from "./pages/Docs";
+import { applySeo } from "./lib/seo";
 
 
 function Page({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,7 @@ function Page({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const loc = useLocation();
-  useEffect(() => { if (!loc.hash) window.scrollTo(0, 0); }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!loc.hash) window.scrollTo(0, 0); applySeo(loc.pathname); }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
       <a className="skip-link" href="#main">Skip to content</a>
