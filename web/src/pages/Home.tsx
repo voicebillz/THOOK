@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 import { LogoTile } from "../components/Logo";
 import { Reveal, Words } from "../components/Reveal";
-import { Countdown } from "../components/Countdown";
+import { AirdropCountdown } from "../components/AirdropCountdown";
 import { FeeChart } from "../components/FeeChart";
 import { HowItWorks } from "../components/HowItWorks";
 import { Sk } from "../components/Skeleton";
@@ -38,7 +38,6 @@ export default function Home() {
   const { data: t } = useToken();
   const live = !!s?.live;
   const usd = (eth: number) => (s?.ethUsd ? eth * s.ethUsd : null);
-  const last = s?.winners?.[0];
 
   return (
     <div className="home-ground">
@@ -77,18 +76,7 @@ export default function Home() {
             {s ? <FeeChart stats={live ? s : undefined} mode="fees" height={72} /> : <span className="sk" style={{ width: "100%", height: 72, display: "block" }} />}
           </div>
 
-          <div className="dcard-list">
-            <div className="dline">
-              <span className="tag tag-green">Next airdrop</span>
-              <span className="grow" />
-              {s ? (live ? <span className="chip-green"><Countdown to={s.epochEnd} /></span> : <span className="muted">—</span>) : <Sk w="10ch" />}
-            </div>
-            <div className="dline">
-              <span className="tag tag-violet">Last winner</span>
-              <span className="grow">{s ? (last ? <>{short(last.winner)}<small>week {last.epoch + 1}</small></> : <span className="muted">first drop pending</span>) : <Sk w="12ch" />}</span>
-              {last && <span className="chip-green">+{fmtEth(last.amountEth, 3)} ETH</span>}
-            </div>
-          </div>
+          {s ? (live ? <AirdropCountdown to={s.epochEnd} /> : null) : <span className="sk" style={{ width: "100%", height: 120, display: "block", marginTop: 10 }} />}
         </motion.div>
 
         {statsErr && !s && <div className="note note-danger" style={{ marginTop: 16 }}>Can't reach the THOOK server right now — retrying.</div>}
