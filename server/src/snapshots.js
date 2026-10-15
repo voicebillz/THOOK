@@ -1,7 +1,7 @@
 // Daily portfolio snapshots per epoch. Epoch boundaries come from the vault
 // (genesis + 7 days), so off-chain and on-chain agree. Snapshot file:
 // snap/e{epoch}-d{day}.json — day 0 of epoch N+1 is the END of epoch N.
-import { pub, vaultAbi } from "./chain.js";
+import { pub, vaultAbi, minHoldWei } from "./chain.js";
 import { env, readJson, writeJson, deployment, WETH } from "./config.js";
 import { holdersAbove, syncHolders } from "./holders.js";
 import { portfolioOf, decimalsOf } from "./portfolio.js";
@@ -40,7 +40,7 @@ export async function takeSnapshot({ force = false } = {}) {
     const d = deployment();
     await syncHolders();
     const sys = systemAddresses();
-    const holders = holdersAbove(env.MIN_HOLD).filter(([a]) => !sys.has(a.toLowerCase()));
+    const holders = holdersAbove(await minHoldWei(d.vault, env.MIN_HOLD)).filter(([a]) => !sys.has(a.toLowerCase()));
     const wallets = {};
     const assets = new Set([WETH.toLowerCase(), d.token.toLowerCase()]);
     for (const [addr] of holders) {

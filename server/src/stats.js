@@ -1,6 +1,6 @@
 // Public read models for the website: fee counter, epochs, winners, token card.
 import { formatEther } from "viem";
-import { pub, vaultAbi, erc20Abi } from "./chain.js";
+import { pub, vaultAbi, erc20Abi, minHoldWei } from "./chain.js";
 import { deployment, readJson, env, writeJson } from "./config.js";
 import { holderCount } from "./holders.js";
 import { ethUsd, tokenInfo } from "./prices.js";
@@ -126,7 +126,7 @@ export async function getToken() {
     supply: Number(formatEther(supply)),
     taxBps: 400,
     holders: holderCount(),
-    minHoldThook: Number(env.MIN_HOLD / 10n ** 18n),
+    minHoldThook: Number((await minHoldWei(d.vault, env.MIN_HOLD)) / 10n ** 18n),
     ...market,
     updatedAt: Date.now(),
   };

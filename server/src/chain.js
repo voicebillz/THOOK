@@ -67,3 +67,21 @@ export const hookAbi = parseAbi([
 export function isWalletCode(code) {
   return !code || code === "0x" || /^0xef0100/i.test(code);
 }
+
+/**
+ * The prize threshold. The vault's on-chain minHold is the single source of
+ * truth once it exists (set at launch, changeable by the Safe); before launch
+ * the MIN_HOLD_THOOK default is shown. Cached 60 s.
+ */
+let minHoldCache = { at: 0, v: null, vault: null };
+export async function minHoldWei(vault, fallback) {
+  if (!vault) return fallback;
+  if (minHoldCache.vault === vault && Date.now() - minHoldCache.at < 60_000) return minHoldCache.v;
+  try {
+    const v = await pub.readContract({ address: vault, abi: vaultAbi, functionName: "minHold" });
+    minHoldCache = { at: Date.now(), v, vault };
+    return v;
+  } catch {
+    return minHoldCache.vault === vault && minHoldCache.v != null ? minHoldCache.v : fallback;
+  }
+}

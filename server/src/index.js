@@ -5,7 +5,7 @@ import express from "express";
 import { formatEther, getAddress, isAddress } from "viem";
 import { env, deployment, saveDeployment, readJson, writeJson, POOL_MANAGER } from "./config.js";
 import { initStore, flushStore, storeKind, keys, deleteKey } from "./store.js";
-import { pub, keeperAccount, keeperWallet, vaultAbi, seederAbi, hookAbi } from "./chain.js";
+import { pub, keeperAccount, keeperWallet, vaultAbi, seederAbi, hookAbi, minHoldWei } from "./chain.js";
 import { requireAdmin } from "./auth.js";
 import { syncHolders, holderState } from "./holders.js";
 import { takeSnapshot, epochClock } from "./snapshots.js";
@@ -44,18 +44,19 @@ const runs = { lastTick: null, lastSnapshot: null, lastSettle: null, lastError: 
 // ------------------------------------------------------------------ public
 app.get("/health", (_req, res) => res.json({ ok: true, store: storeKind() }));
 
-app.get("/api/config", (_req, res) => {
+app.get("/api/config", wrap(async (_req, res) => {
   const d = deployment();
+  const minHold = await minHoldWei(d.vault, env.MIN_HOLD);
   res.json({
     chainId: 4663,
     poolManager: POOL_MANAGER,
     admin: env.ADMIN_WALLET || null,
     keeper: keeperAccount?.address || null,
     safe: env.SAFE_ADDRESS || null,
-    minHoldThook: Number(env.MIN_HOLD / 10n ** 18n),
+    minHoldThook: Number(minHold / 10n ** 18n),
     ...d,
   });
-});
+}));
 
 app.get("/api/stats", wrap(async (_req, res) => {
   res.set("Cache-Control", "public, max-age=10");

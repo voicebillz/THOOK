@@ -1,6 +1,6 @@
 // Settle an ended epoch: score → Claude audit → report → payEpoch on-chain.
 import { formatEther, keccak256, toBytes, getAddress } from "viem";
-import { pub, keeperWallet, keeperAccount, vaultAbi, isWalletCode } from "./chain.js";
+import { pub, keeperWallet, keeperAccount, vaultAbi, isWalletCode, minHoldWei } from "./chain.js";
 import { env, readJson, writeJson, deployment } from "./config.js";
 import { loadSnap } from "./snapshots.js";
 import { scoreEpoch, splitPot } from "./scoring.js";
@@ -31,7 +31,8 @@ export async function buildReport(epoch) {
   const d = deployment();
   const { snaps, hasEnd } = weekSnaps(epoch);
   if (!hasEnd || snaps.length < 2) throw new Error(`epoch ${epoch}: missing snapshots (have ${snaps.length}, end=${hasEnd})`);
-  const ranked = scoreEpoch(snaps, { minHold: env.MIN_HOLD, token: d.token, exclude: systemAddresses(), rankBy: env.RANK_BY });
+  const minHold = await minHoldWei(d.vault, env.MIN_HOLD);
+  const ranked = scoreEpoch(snaps, { minHold, token: d.token, exclude: systemAddresses(), rankBy: env.RANK_BY });
   const top = ranked.slice(0, CANDIDATES);
   const end = snaps[snaps.length - 1];
   for (const c of top) {
@@ -52,7 +53,7 @@ export async function buildReport(epoch) {
   const amounts = splitPot(toPay, winners.length);
   const report = {
     epoch,
-    rules: { rankBy: env.RANK_BY, minHoldThook: (env.MIN_HOLD / 10n ** 18n).toString(), topN: env.TOP_N, payoutBps: env.PAYOUT_BPS },
+    rules: { rankBy: env.RANK_BY, minHoldThook: (minHold / 10n ** 18n).toString(), topN: env.TOP_N, payoutBps: env.PAYOUT_BPS },
     window: { start: snaps[0].takenAt, end: end.takenAt, snapshots: snaps.length },
     potWei: toPay.toString(),
     ethUsd: end.ethUsd,
