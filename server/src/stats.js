@@ -104,8 +104,9 @@ export async function getStats() {
 }
 
 export async function getToken() {
-  if (tokenCache.data && Date.now() - tokenCache.at < 60_000) return tokenCache.data;
   const d = deployment();
+  // Cache is keyed to the deployment, so new addresses (e.g. right after launch) show immediately.
+  if (tokenCache.data && tokenCache.key === d.updatedAt && Date.now() - tokenCache.at < 60_000) return tokenCache.data;
   if (!d.token) return { live: false };
   const [supply, market] = await Promise.all([
     pub.readContract({ address: d.token, abi: erc20Abi, functionName: "totalSupply" }),
@@ -130,7 +131,7 @@ export async function getToken() {
     ...market,
     updatedAt: Date.now(),
   };
-  tokenCache = { at: Date.now(), data };
+  tokenCache = { at: Date.now(), key: d.updatedAt, data };
   return data;
 }
 

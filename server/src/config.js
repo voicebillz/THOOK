@@ -57,6 +57,7 @@ export function deployment() {
     if (v && isAddress(v)) out[k] = getAddress(v);
   }
   if (process.env.THOOK_DEPLOY_BLOCK) out.deployBlock = Number(process.env.THOOK_DEPLOY_BLOCK);
+  if (/^0x[0-9a-fA-F]{64}$/.test(process.env.THOOK_POOL_ID || "")) out.poolId = process.env.THOOK_POOL_ID;
   return out;
 }
 
